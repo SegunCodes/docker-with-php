@@ -1,4 +1,8 @@
-<?php ?>
+<?php 
+
+echo "hi"
+
+?>
 
 <!doctype html>
 <html lang="en">
