@@ -1,6 +1,12 @@
-FROM php:8.1-fpm-alpine
+FROM php:8.1-fpm-alpine as app
 
-RUN docker-php-ext-install pdo pdo_mysql
+# Useful PHP extension installer image, copy binary into your container
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+
+RUN set -eux; \
+    install-php-extensions pdo pdo_mysql;
+
+#RUN docker-php-ext-install pdo pdo_mysql
 
 #ALLOW SUPER USER
 ENV COMPOSER_ALLOW_SUPERUSER=1
@@ -21,3 +27,15 @@ COPY ./app .
 
 #run composer dump-autoload --optimize
 RUN composer dump-autoload --optimize
+
+FROM app as app_dev
+
+# xdebug has different modes / functionalities. We can default to "off" and set to debug
+# when we run docker compose up if we need it
+ENV XDEBUG_MODE=off
+
+# copy xdebug config file into container
+COPY ./php/conf.d/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+
+RUN set -eux; \
+    install-php-extensions xdebug;
